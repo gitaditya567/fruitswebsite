@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const LocationSelection = () => {
     const navigate = useNavigate();
@@ -9,7 +10,7 @@ const LocationSelection = () => {
     React.useEffect(() => {
         const fetchAreas = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/areas');
+                const res = await axios.get(`${API_URL}/api/areas`);
                 setLocations(res.data);
             } catch (err) {
                 console.error(err);

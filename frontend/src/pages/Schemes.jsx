@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_URL, getImageUrl } from '../config';
 
 const Schemes = () => {
     const [schemes, setSchemes] = useState([]);
@@ -9,7 +10,7 @@ const Schemes = () => {
 
     useEffect(() => {
         if (!area) navigate('/location');
-        axios.get(`http://localhost:5000/api/schemes/${area}`)
+        axios.get(`${API_URL}/api/schemes/${area}`)
             .then(res => setSchemes(res.data))
             .catch(err => console.error(err));
     }, [area, navigate]);
@@ -27,7 +28,7 @@ const Schemes = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {schemes.map(scheme => (
                     <div key={scheme._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300">
-                        <img src={scheme.product.image} alt={scheme.product.name} className="w-full h-48 object-cover" />
+                        <img src={getImageUrl(scheme.product.image)} alt={scheme.product.name} className="w-full h-48 object-cover" />
                         <div className="p-6">
                             <h3 className="text-2xl font-bold text-gray-900 mb-2">{scheme.product.name}</h3>
                             <div className="flex justify-between items-center mb-4">

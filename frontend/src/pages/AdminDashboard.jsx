@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_URL, getImageUrl } from '../config';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -26,18 +27,18 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/orders', config);
+            const res = await axios.get(`${API_URL}/api/orders`, config);
             setOrders(res.data);
         } catch (err) { console.error(err); }
     };
 
     const fetchMeta = async () => {
         try {
-            const pRes = await axios.get('http://localhost:5000/api/products');
+            const pRes = await axios.get(`${API_URL}/api/products`);
             setProducts(pRes.data);
-            const aRes = await axios.get('http://localhost:5000/api/areas');
+            const aRes = await axios.get(`${API_URL}/api/areas`);
             setAreas(aRes.data);
-            const sRes = await axios.get('http://localhost:5000/api/admin/schemes', config);
+            const sRes = await axios.get(`${API_URL}/api/admin/schemes`, config);
             setSchemes(sRes.data);
         } catch (e) { console.error(e); }
     };
@@ -49,11 +50,11 @@ const AdminDashboard = () => {
 
         try {
             // 1. Upload Image
-            const uploadRes = await axios.post('http://localhost:5000/api/upload', formData, config);
-            const imagePath = `http://localhost:5000${uploadRes.data.filePath}`;
+            const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, config);
+            const imagePath = `${API_URL}${uploadRes.data.filePath}`;
 
             // 2. Add Product
-            await axios.post('http://localhost:5000/api/products', { name: productForm.name, image: imagePath }, config);
+            await axios.post(`${API_URL}/api/products`, { name: productForm.name, image: imagePath }, config);
             alert('Product Added');
             fetchMeta();
             setProductForm({ name: '', image: null });
@@ -63,7 +64,7 @@ const AdminDashboard = () => {
     const handleSchemeSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/schemes', schemeForm, config);
+            await axios.post(`${API_URL}/api/schemes`, schemeForm, config);
             alert('Scheme Added');
             fetchMeta();
             setSchemeForm({ area: '', product: '', price: '', offer: '' });
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
     const handleDeleteScheme = async (id) => {
         if (window.confirm('Delete this scheme (Remove product from area)?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/schemes/${id}`, config);
+                await axios.delete(`${API_URL}/api/schemes/${id}`, config);
                 fetchMeta();
             } catch (err) { alert('Error deleting scheme'); }
         }
@@ -83,7 +84,7 @@ const AdminDashboard = () => {
         e.preventDefault();
         if (!areaForm) return;
         try {
-            await axios.post('http://localhost:5000/api/areas', { name: areaForm }, config);
+            await axios.post(`${API_URL}/api/areas`, { name: areaForm }, config);
             setAreaForm('');
             fetchMeta();
             alert('Area Added');
@@ -93,7 +94,7 @@ const AdminDashboard = () => {
     const handleDeleteArea = async (id) => {
         if (window.confirm('Delete this Area? This will verify remove all schemes in this area.')) {
             try {
-                await axios.delete(`http://localhost:5000/api/areas/${id}`, config);
+                await axios.delete(`${API_URL}/api/areas/${id}`, config);
                 fetchMeta();
             } catch (err) { alert('Error deleting area'); }
         }
@@ -102,7 +103,7 @@ const AdminDashboard = () => {
     const handleDeleteProduct = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/products/${id}`, config);
+                await axios.delete(`${API_URL}/api/products/${id}`, config);
                 fetchMeta(); // Refresh list
                 alert('Product Deleted');
             } catch (err) {
@@ -168,7 +169,7 @@ const AdminDashboard = () => {
                                 {products.map(p => (
                                     <tr key={p._id} className="border-b">
                                         <td className="p-3">
-                                            <img src={p.image} alt={p.name} className="w-16 h-16 object-cover rounded shadow-sm" />
+                                            <img src={getImageUrl(p.image)} alt={p.name} className="w-16 h-16 object-cover rounded shadow-sm" />
                                         </td>
                                         <td className="p-3 font-medium">{p.name}</td>
                                         <td className="p-3 text-gray-500 text-sm">{p._id}</td>

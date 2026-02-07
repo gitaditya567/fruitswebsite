@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const Order = () => {
     const { state } = useLocation();
@@ -17,7 +18,7 @@ const Order = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/orders', formData);
+            await axios.post(`${API_URL}/api/orders`, formData);
             alert('Order Placed Successfully!');
             navigate('/');
         } catch (err) {

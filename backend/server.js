@@ -18,6 +18,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logging Middleware
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
 // Serve static files for uploaded images
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -288,6 +294,11 @@ app.delete('/api/areas/:id', auth, async (req, res) => {
     } catch (err) {
         res.status(500).send('Server Error');
     }
+});
+
+// Catch-all route
+app.use('*', (req, res) => {
+    res.status(404).json({ msg: 'Route Not Found', path: req.url });
 });
 
 const PORT = process.env.PORT || 5000;

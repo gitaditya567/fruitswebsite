@@ -110,6 +110,9 @@ const auth = (req, res, next) => {
 };
 
 // Routes
+app.get('/', (req, res) => {
+    res.send('API is running...');
+});
 
 // 1. Get Areas
 app.get('/api/areas', async (req, res) => {

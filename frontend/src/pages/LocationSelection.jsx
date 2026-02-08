@@ -31,8 +31,28 @@ const LocationSelection = () => {
         navigate('/schemes');
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-xl">Loading locations...</div>;
-    if (error) return <div className="min-h-screen flex items-center justify-center text-red-600 text-xl">{error}</div>;
+    if (loading) return (
+        <div className="min-h-screen flex flex-col items-center justify-center">
+            <div className="text-xl mb-4">Loading locations...</div>
+            <div className="text-sm text-gray-500">Connecting to: {API_URL}</div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+            <div className="text-red-600 text-xl font-bold mb-2">Connection Error</div>
+            <div className="text-gray-700 mb-4">{error}</div>
+            <div className="bg-gray-200 p-2 rounded text-xs font-mono break-all">
+                Attempted URL: {API_URL}/api/areas
+            </div>
+            <div className="mt-4 text-sm text-gray-600 max-w-md text-center">
+                <strong>Troubleshooting:</strong><br />
+                1. Open <a href={API_URL} target="_blank" className="text-blue-600 underline">this backend link</a>. You should see "API is running...".<br />
+                2. If you see a "Not Found" or "Site Not Found" error, check your Render Dashboard.<br />
+                3. Ensure your Backend is deployed as a <strong>Web Service</strong>, NOT a Static Site.
+            </div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">

@@ -297,7 +297,7 @@ app.delete('/api/areas/:id', auth, async (req, res) => {
 });
 
 // Catch-all route
-app.use('*', (req, res) => {
+app.use((req, res) => {
     res.status(404).json({ msg: 'Route Not Found', path: req.url });
 });
 

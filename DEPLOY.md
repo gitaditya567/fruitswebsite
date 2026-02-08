@@ -34,7 +34,16 @@
     *   Value: Paste the Backend Service URL from Step 1 (e.g., `https://fruits-backend.onrender.com`) **without the trailing slash**.
         *   Example: `https://fruits-backend.onrender.com`
 5.  Click **Create Static Site**.
-6.  Your website will be live at the provided Render URL!
+6.  Click **Create Static Site**.
+7.  **CRITICAL STEP (Fix 404 on Refresh/Direct Links)**:
+    *   Go to your new Static Site's **Settings** tab.
+    *   Scroll down to **Redirects / Rewrites**.
+    *   Add a new rule:
+        *   **Source**: `/*`
+        *   **Destination**: `/index.html`
+        *   **Action**: `Rewrite`
+    *   Click **Save Changes**.
+8.  Your website will be live at the provided Render URL!
 
 ## Troubleshooting
 

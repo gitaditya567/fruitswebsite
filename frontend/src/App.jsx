@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Welcome from './pages/Welcome';
 import LocationSelection from './pages/LocationSelection';
 import Schemes from './pages/Schemes';
@@ -15,6 +15,7 @@ function App() {
           <Route path="/location" element={<LocationSelection />} />
           <Route path="/schemes" element={<Schemes />} />
           <Route path="/order" element={<Order />} />
+          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

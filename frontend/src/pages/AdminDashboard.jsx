@@ -13,7 +13,7 @@ const AdminDashboard = () => {
     const [areaForm, setAreaForm] = useState('');
 
     // Forms
-    const [productForm, setProductForm] = useState({ name: '', image: null });
+    const [productForm, setProductForm] = useState({ name: '', image: null, imageUrl: '' });
     const [schemeForm, setSchemeForm] = useState({ area: '', product: '', price: '', offer: '' });
 
     const token = localStorage.getItem('token');
@@ -45,21 +45,62 @@ const AdminDashboard = () => {
 
     const handleProductSubmit = async (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append('image', productForm.image);
+
+        let imagePath = productForm.imageUrl;
 
         try {
-            // 1. Upload Image
-            const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, config);
-            const imagePath = `${API_URL}${uploadRes.data.filePath}`;
+            // 1. Upload Image (only if file is selected)
+            if (productForm.image) {
+                const formData = new FormData();
+                formData.append('image', productForm.image);
+                const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, config);
+                imagePath = `${API_URL}${uploadRes.data.filePath}`;
+            }
+
+            if (!imagePath) {
+                alert('Please upload an image or provide an Image URL');
+                return;
+            }
 
             // 2. Add Product
             await axios.post(`${API_URL}/api/products`, { name: productForm.name, image: imagePath }, config);
             alert('Product Added');
             fetchMeta();
-            setProductForm({ name: '', image: null });
-        } catch (err) { alert('Error adding product'); }
+            setProductForm({ name: '', image: null, imageUrl: '' });
+            // Reset file input manually if needed, or rely on state
+            document.getElementById('fileInput').value = "";
+        } catch (err) {
+            console.error(err);
+            alert('Error adding product');
+        }
     };
+
+    // ... (rest of the component)
+
+    {
+        activeTab === 'products' && (
+            <div className="bg-white p-6 rounded shadow max-w-lg">
+                <h2 className="text-xl font-bold mb-4">Add New Product</h2>
+                <form onSubmit={handleProductSubmit}>
+                    <input className="w-full p-2 border mb-4" placeholder="Product Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} required />
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Option A: Upload Image File</label>
+                        <input id="fileInput" type="file" className="w-full p-2 border" onChange={e => setProductForm({ ...productForm, image: e.target.files[0] })} />
+                    </div>
+
+                    <div className="text-center my-2 text-gray-500 font-bold">- OR -</div>
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Option B: Image URL (Permanent)</label>
+                        <input className="w-full p-2 border" placeholder="https://example.com/image.jpg" value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} />
+                    </div>
+
+                    <button className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 transition">Add Product</button>
+                </form>
+            </div>
+        )
+    }
 
     const handleSchemeSubmit = async (e) => {
         e.preventDefault();
@@ -197,9 +238,21 @@ const AdminDashboard = () => {
                     <div className="bg-white p-6 rounded shadow max-w-lg">
                         <h2 className="text-xl font-bold mb-4">Add New Product</h2>
                         <form onSubmit={handleProductSubmit}>
-                            <input className="w-full p-2 border mb-4" placeholder="Product Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} />
-                            <input type="file" className="w-full p-2 border mb-4" onChange={e => setProductForm({ ...productForm, image: e.target.files[0] })} />
-                            <button className="bg-amber-600 text-white px-4 py-2 rounded">Upload & Add</button>
+                            <input className="w-full p-2 border mb-4" placeholder="Product Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} required />
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Option A: Upload Image File</label>
+                                <input id="fileInput" type="file" className="w-full p-2 border" onChange={e => setProductForm({ ...productForm, image: e.target.files[0] })} />
+                            </div>
+
+                            <div className="text-center my-2 text-gray-500 font-bold">- OR -</div>
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Option B: Image URL (Permanent)</label>
+                                <input className="w-full p-2 border" placeholder="https://example.com/image.jpg" value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} />
+                            </div>
+
+                            <button className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 transition">Add Product</button>
                         </form>
                     </div>
                 )}

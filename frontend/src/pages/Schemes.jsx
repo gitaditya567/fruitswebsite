@@ -28,9 +28,27 @@ const Schemes = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {schemes.map(scheme => (
                     <div key={scheme._id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300">
-                        <img src={getImageUrl(scheme.product.image)} alt={scheme.product.name} className="w-full h-48 object-cover" />
+                        <div className="relative h-48 w-full bg-gray-200">
+                            {/* Debug info shown on hover if image fails or for transparency */}
+                            {!scheme.product ? (
+                                <div className="absolute inset-0 flex items-center justify-center text-red-500 font-bold p-4 text-center">
+                                    Product Data Missing
+                                </div>
+                            ) : (
+                                <img
+                                    src={getImageUrl(scheme.product.image)}
+                                    alt={scheme.product.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
+                                        console.error('Image failed to load:', getImageUrl(scheme.product.image));
+                                    }}
+                                />
+                            )}
+                        </div>
                         <div className="p-6">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{scheme.product.name}</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{scheme.product?.name || 'Unknown Product'}</h3>
                             <div className="flex justify-between items-center mb-4">
                                 <span className="text-xl font-semibold text-green-600">₹{scheme.price}</span>
                                 <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">{scheme.offer}</span>

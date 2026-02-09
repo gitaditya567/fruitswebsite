@@ -19,6 +19,7 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

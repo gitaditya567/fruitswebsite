@@ -15,6 +15,7 @@ const AdminDashboard = () => {
     // Forms
     const [productForm, setProductForm] = useState({ name: '', image: null, imageUrl: '' });
     const [schemeForm, setSchemeForm] = useState({ area: '', product: '', price: '', offer: '' });
+    const [adminForm, setAdminForm] = useState({ username: '', password: '' });
 
     const token = localStorage.getItem('token');
     const config = { headers: { 'x-auth-token': token } };
@@ -77,30 +78,7 @@ const AdminDashboard = () => {
 
     // ... (rest of the component)
 
-    {
-        activeTab === 'products' && (
-            <div className="bg-white p-6 rounded shadow max-w-lg">
-                <h2 className="text-xl font-bold mb-4">Add New Product</h2>
-                <form onSubmit={handleProductSubmit}>
-                    <input className="w-full p-2 border mb-4" placeholder="Product Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} required />
 
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Option A: Upload Image File</label>
-                        <input id="fileInput" type="file" className="w-full p-2 border" onChange={e => setProductForm({ ...productForm, image: e.target.files[0] })} />
-                    </div>
-
-                    <div className="text-center my-2 text-gray-500 font-bold">- OR -</div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Option B: Image URL (Permanent)</label>
-                        <input className="w-full p-2 border" placeholder="https://example.com/image.jpg" value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} />
-                    </div>
-
-                    <button className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 transition">Add Product</button>
-                </form>
-            </div>
-        )
-    }
 
     const handleSchemeSubmit = async (e) => {
         e.preventDefault();
@@ -154,6 +132,20 @@ const AdminDashboard = () => {
         }
     };
 
+
+
+    const handleAdminSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(`${API_URL}/api/auth/create-admin`, adminForm, config);
+            alert('New Admin Created Successfully');
+            setAdminForm({ username: '', password: '' });
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.msg || 'Error creating admin');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-6xl mx-auto">
@@ -164,6 +156,7 @@ const AdminDashboard = () => {
                     <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded ${activeTab === 'products' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Add Product</button>
                     <button onClick={() => setActiveTab('schemes')} className={`px-4 py-2 rounded ${activeTab === 'schemes' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Schemes</button>
                     <button onClick={() => setActiveTab('areas')} className={`px-4 py-2 rounded ${activeTab === 'areas' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Areas</button>
+                    <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded ${activeTab === 'admins' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Manage Admins</button>
                     <button onClick={() => { localStorage.removeItem('token'); navigate('/admin/login'); }} className="px-4 py-2 bg-red-500 text-white rounded ml-auto">Logout</button>
                 </div>
 
@@ -330,6 +323,37 @@ const AdminDashboard = () => {
                         <form onSubmit={handleAreaSubmit}>
                             <input className="w-full p-2 border mb-4" placeholder="Area Name (e.g., Kidwai Nagar)" value={areaForm} onChange={e => setAreaForm(e.target.value)} />
                             <button className="bg-amber-600 text-white px-4 py-2 rounded">Add Area</button>
+                        </form>
+                    </div>
+                )}
+
+
+                {activeTab === 'admins' && (
+                    <div className="bg-white p-6 rounded shadow max-w-lg">
+                        <h2 className="text-xl font-bold mb-4">Create New Admin User</h2>
+                        <form onSubmit={handleAdminSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 font-bold mb-2">New Username</label>
+                                <input
+                                    className="w-full p-2 border rounded"
+                                    placeholder="Enter username"
+                                    value={adminForm.username}
+                                    onChange={e => setAdminForm({ ...adminForm, username: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="mb-6">
+                                <label className="block text-gray-700 font-bold mb-2">New Password</label>
+                                <input
+                                    className="w-full p-2 border rounded"
+                                    type="password"
+                                    placeholder="Enter password"
+                                    value={adminForm.password}
+                                    onChange={e => setAdminForm({ ...adminForm, password: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <button className="w-full bg-amber-600 text-white py-2 rounded font-bold hover:bg-amber-700 transition">Create Admin</button>
                         </form>
                     </div>
                 )}

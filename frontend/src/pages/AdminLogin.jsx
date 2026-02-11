@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../config';
 
 const AdminLogin = () => {
-    const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('password');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {

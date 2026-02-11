@@ -184,6 +184,26 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// 4.1 Create New Admin (Protected)
+app.post('/api/auth/create-admin', auth, async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        let admin = await Admin.findOne({ username });
+        if (admin) return res.status(400).json({ msg: 'Admin already exists' });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        admin = new Admin({ username, password: hashedPassword });
+        await admin.save();
+
+        res.json({ msg: 'Admin created successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // 5. Admin - Get Orders
 app.get('/api/orders', auth, async (req, res) => {
     try {

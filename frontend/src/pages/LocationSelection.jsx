@@ -32,25 +32,22 @@ const LocationSelection = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-            <div className="text-xl mb-4">Loading locations...</div>
-            <div className="text-sm text-gray-500">Connecting to: {API_URL}</div>
+        <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-900 mb-4"></div>
+            <p className="text-amber-900 text-xl font-bold animate-pulse">Loading Locations...</p>
         </div>
     );
 
     if (error) return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
-            <div className="text-red-600 text-xl font-bold mb-2">Connection Error</div>
-            <div className="text-gray-700 mb-4">{error}</div>
-            <div className="bg-gray-200 p-2 rounded text-xs font-mono break-all">
-                Attempted URL: {API_URL}/api/areas
-            </div>
-            <div className="mt-4 text-sm text-gray-600 max-w-md text-center">
-                <strong>Troubleshooting:</strong><br />
-                1. Open <a href={API_URL} target="_blank" className="text-blue-600 underline">this backend link</a>. You should see "API is running...".<br />
-                2. If you see a "Not Found" or "Site Not Found" error, check your Render Dashboard.<br />
-                3. Ensure your Backend is deployed as a <strong>Web Service</strong>, NOT a Static Site.
-            </div>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+            <div className="text-red-800 text-xl font-bold mb-2">Unable to Load Locations</div>
+            <p className="text-gray-600">Please check your internet connection and try again.</p>
+            <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-amber-700 text-white rounded-full hover:bg-amber-800 transition shadow-lg"
+            >
+                Retry
+            </button>
         </div>
     );
 

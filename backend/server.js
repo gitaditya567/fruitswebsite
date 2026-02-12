@@ -316,7 +316,23 @@ app.delete('/api/areas/:id', auth, async (req, res) => {
     }
 });
 
-// Catch-all route
+// Serve static assets in production
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch-all for React routing (must be after API routes)
+app.get('*', (req, res, next) => {
+    // If it's an API request, skip to 404 handler
+    if (req.path.startsWith('/api')) return next();
+
+    const indexFile = path.join(__dirname, '../frontend/dist/index.html');
+    if (fs.existsSync(indexFile)) {
+        res.sendFile(indexFile);
+    } else {
+        next(); // Fallback to 404 if frontend build missing
+    }
+});
+
+// Final 404 Handler for API and missing frontend
 app.use((req, res) => {
     res.status(404).json({ msg: 'Route Not Found', path: req.url });
 });

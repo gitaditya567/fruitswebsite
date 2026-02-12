@@ -320,9 +320,10 @@ app.delete('/api/areas/:id', auth, async (req, res) => {
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Catch-all for React routing (must be after API routes)
-app.get('*', (req, res, next) => {
+// Express 5 requires regex /.*/ or (.*) instead of '*'
+app.get(/.*/, (req, res, next) => {
     // If it's an API request, skip to 404 handler
-    if (req.path.startsWith('/api')) return next();
+    if (req.originalUrl.startsWith('/api')) return next();
 
     const indexFile = path.join(__dirname, '../frontend/dist/index.html');
     if (fs.existsSync(indexFile)) {

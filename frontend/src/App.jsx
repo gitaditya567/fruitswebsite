@@ -5,6 +5,11 @@ import Schemes from './pages/Schemes';
 import Order from './pages/Order';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import UserLogin from './pages/UserLogin';
+import UserRegister from './pages/UserRegister';
+import OrderHistory from './pages/OrderHistory';
+import UserProfile from './pages/UserProfile';
+import Cart from './pages/Cart';
 
 function App() {
   return (
@@ -19,6 +24,11 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/user/login" element={<UserLogin />} />
+          <Route path="/user/register" element={<UserRegister />} />
+          <Route path="/user/profile" element={<UserProfile />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/my-orders" element={<OrderHistory />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

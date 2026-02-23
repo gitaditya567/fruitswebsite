@@ -10,6 +10,18 @@ const LocationSelection = () => {
     const [error, setError] = React.useState('');
 
     React.useEffect(() => {
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            navigate('/user/login');
+            return;
+        }
+
+        const storedArea = localStorage.getItem('selectedArea');
+        if (storedArea && storedArea !== 'undefined') {
+            navigate('/schemes');
+            return;
+        }
+
         const fetchAreas = async () => {
             try {
                 // Log API URL to debug in console
@@ -24,11 +36,36 @@ const LocationSelection = () => {
             }
         };
         fetchAreas();
-    }, []);
+    }, [navigate]);
 
-    const handleSelect = (locName) => {
-        localStorage.setItem('selectedArea', locName);
-        navigate('/schemes');
+    const handleSelect = async (locName) => {
+        try {
+            const token = localStorage.getItem('userToken');
+            // Update user profile in backend so preference is saved
+            await axios.put(
+                `${API_URL}/api/auth/user/profile`,
+                { area: locName },
+                { headers: { 'x-auth-token': token } }
+            );
+
+            // Update local storage and userInfo
+            localStorage.setItem('selectedArea', locName);
+            const userInfo = localStorage.getItem('userInfo');
+            if (userInfo) {
+                const user = JSON.parse(userInfo);
+                user.area = locName;
+                localStorage.setItem('userInfo', JSON.stringify(user));
+            }
+
+            navigate('/schemes');
+        } catch (err) {
+            console.error('Error updating location:', err);
+            // Fallback: still navigate even if backend update fails, but warn? 
+            // Better to just proceed for user experience if backend is glitchy, but ideal to show error.
+            // For now, proceed as valid fallback
+            localStorage.setItem('selectedArea', locName);
+            navigate('/schemes');
+        }
     };
 
     if (loading) return (

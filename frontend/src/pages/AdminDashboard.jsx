@@ -12,6 +12,8 @@ const AdminDashboard = () => {
     const [areas, setAreas] = useState([]);
     const [areaForm, setAreaForm] = useState('');
 
+    const [userCount, setUserCount] = useState(0);
+
     // Forms
     const [productForm, setProductForm] = useState({ name: '', image: null, imageUrl: '' });
     const [schemeForm, setSchemeForm] = useState({ area: '', product: '', price: '', offer: '' });
@@ -41,7 +43,23 @@ const AdminDashboard = () => {
             setAreas(aRes.data);
             const sRes = await axios.get(`${API_URL}/api/admin/schemes`, config);
             setSchemes(sRes.data);
+
+            // Fetch User Count
+            const uRes = await axios.get(`${API_URL}/api/admin/users/count`, config);
+            setUserCount(uRes.data.count);
         } catch (e) { console.error(e); }
+    };
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await axios.put(`${API_URL}/api/orders/${id}/status`, { status: newStatus }, config);
+            // Optimistically update UI or re-fetch
+            setOrders(orders.map(o => o._id === id ? { ...o, status: newStatus } : o));
+        } catch (err) {
+            console.error(err);
+            const msg = err.response?.data?.msg || 'Failed to update status';
+            alert(msg);
+        }
     };
 
     const handleProductSubmit = async (e) => {
@@ -149,15 +167,28 @@ const AdminDashboard = () => {
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-                <div className="flex space-x-4 mb-8">
-                    <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded ${activeTab === 'orders' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Orders</button>
-                    <button onClick={() => setActiveTab('view_products')} className={`px-4 py-2 rounded ${activeTab === 'view_products' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>All Products</button>
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                    <div className="bg-white px-6 py-3 rounded-lg shadow-md border-l-4 border-amber-600 flex items-center">
+                        <span className="text-gray-600 font-semibold mr-2">Total Client:</span>
+                        <span className="text-2xl font-bold text-amber-700">{userCount}</span>
+                    </div>
+                </div>
+                <div className="flex space-x-4 mb-8 overflow-x-auto pb-2">
+                    <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded whitespace-nowrap ${activeTab === 'orders' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Orders</button>
+                    <button onClick={() => setActiveTab('view_products')} className={`px-4 py-2 rounded whitespace-nowrap ${activeTab === 'view_products' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>All Products</button>
                     <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded ${activeTab === 'products' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Add Product</button>
                     <button onClick={() => setActiveTab('schemes')} className={`px-4 py-2 rounded ${activeTab === 'schemes' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Schemes</button>
                     <button onClick={() => setActiveTab('areas')} className={`px-4 py-2 rounded ${activeTab === 'areas' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Areas</button>
                     <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded ${activeTab === 'admins' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700'}`}>Manage Admins</button>
-                    <button onClick={() => { localStorage.removeItem('token'); navigate('/admin/login'); }} className="px-4 py-2 bg-red-500 text-white rounded ml-auto">Logout</button>
+                    <div className="ml-auto flex items-center space-x-4">
+                        <span className="text-gray-700 font-semibold">Welcome, {localStorage.getItem('adminUser') || 'Admin'}</span>
+                        <button onClick={() => {
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('adminUser');
+                            navigate('/admin/login');
+                        }} className="px-4 py-2 bg-red-500 text-white rounded">Logout</button>
+                    </div>
                 </div>
 
                 {activeTab === 'orders' && (
@@ -169,7 +200,7 @@ const AdminDashboard = () => {
                                     <th className="p-3 text-left">Name</th>
                                     <th className="p-3 text-left">Address</th>
                                     <th className="p-3 text-left">Product</th>
-                                    <th className="p-3 text-left">Qty</th>
+                                    <th className="p-3 text-left">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -180,6 +211,23 @@ const AdminDashboard = () => {
                                         <td className="p-3">{o.address} <br /><span className="text-xs text-gray-500">{o.area}</span></td>
                                         <td className="p-3">{o.product}</td>
                                         <td className="p-3">{o.quantity}</td>
+                                        <td className="p-3">
+                                            <select
+                                                value={o.status || 'Pending'}
+                                                onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                                                className={`p-1 rounded text-sm font-semibold border
+                                                    ${o.status === 'Delivered' ? 'bg-green-100 text-green-800 border-green-300' :
+                                                        o.status === 'Cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                                                            o.status === 'Shipped' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                                                'bg-yellow-100 text-yellow-800 border-yellow-300'}`}
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="Processing">Processing</option>
+                                                <option value="Shipped">Shipped</option>
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="Cancelled">Cancelled</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

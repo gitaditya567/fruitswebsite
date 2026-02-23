@@ -13,6 +13,9 @@ const AdminLogin = () => {
         try {
             const res = await axios.post(`${API_URL}/api/auth/login`, { username, password });
             localStorage.setItem('token', res.data.token);
+            if (res.data.user && res.data.user.username) {
+                localStorage.setItem('adminUser', res.data.user.username);
+            }
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Login Error:', err);

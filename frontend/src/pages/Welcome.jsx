@@ -8,12 +8,53 @@ const Welcome = () => {
     const handleStartShopping = () => {
         setIsLoading(true);
         setTimeout(() => {
-            navigate('/location');
+            const token = localStorage.getItem('userToken');
+            if (token) navigate('/location');
+            else navigate('/user/login');
         }, 2000);
     };
 
     return (
         <div className="relative flex flex-col items-center justify-center min-h-screen">
+            {/* Navigation */}
+            <div className="absolute top-0 right-0 p-6 z-50 flex gap-4">
+                {localStorage.getItem('userToken') ? (
+                    <>
+                        <button
+                            onClick={() => navigate('/my-orders')}
+                            className="bg-white/80 backdrop-blur text-amber-900 px-4 py-2 rounded-full font-bold hover:bg-white transition"
+                        >
+                            My Orders
+                        </button>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem('userToken');
+                                localStorage.removeItem('userInfo');
+                                window.location.reload();
+                            }}
+                            className="bg-red-500/80 backdrop-blur text-white px-4 py-2 rounded-full font-bold hover:bg-red-600 transition"
+                        >
+                            Logout
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <button
+                            onClick={() => navigate('/user/login')}
+                            className="bg-white/80 backdrop-blur text-amber-900 px-4 py-2 rounded-full font-bold hover:bg-white transition"
+                        >
+                            Login
+                        </button>
+                        <button
+                            onClick={() => navigate('/user/register')}
+                            className="bg-amber-800 text-white px-4 py-2 rounded-full font-bold hover:bg-amber-900 transition"
+                        >
+                            Register
+                        </button>
+                    </>
+                )}
+            </div>
+
             {/* Background Image with Low Opacity */}
             <div
                 className="absolute inset-0 bg-cover bg-center z-[-1]"

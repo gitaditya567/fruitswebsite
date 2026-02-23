@@ -13,6 +13,7 @@ const Product = require('./models/Product');
 const Scheme = require('./models/Scheme');
 const Order = require('./models/Order');
 const Admin = require('./models/Admin');
+const User = require('./models/User');
 
 const app = express();
 app.use(cors());
@@ -115,6 +116,19 @@ const auth = (req, res, next) => {
     }
 };
 
+// User Middleware
+const userAuth = (req, res, next) => {
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded.user;
+        next();
+    } catch (e) {
+        res.status(400).json({ msg: 'Token is not valid' });
+    }
+};
+
 // Routes
 app.get('/', (req, res) => {
     res.send('API is running...');
@@ -153,13 +167,147 @@ app.get('/api/schemes/:area', async (req, res) => {
 // 3. Place Order
 app.post('/api/orders', async (req, res) => {
     try {
-        const { name, mobile, address, area, product, quantity } = req.body;
+        const { name, mobile, address, area, product, quantity, userId } = req.body;
         const newOrder = new Order({
-            name, mobile, address, area, product, quantity
+            name, mobile, address, area, product, quantity,
+            user: userId || null,
+            status: 'Pending'
         });
         await newOrder.save();
         res.json(newOrder);
     } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// 3.1 Update Order Status (Admin)
+// 3.1 Update Order Status (Admin)
+app.put('/api/orders/:id/status', auth, async (req, res) => {
+    try {
+        const { status } = req.body;
+        console.log(`Updating order ${req.params.id} to status: ${status}`);
+
+        const validStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ msg: 'Invalid status value' });
+        }
+
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ msg: 'Order not found' });
+
+        order.status = status;
+        await order.save();
+        res.json(order);
+    } catch (err) {
+        console.error('Error updating order status:', err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// 3.1 Get User Orders
+app.get('/api/orders/my-orders', userAuth, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user.id }).sort({ date: -1 });
+        res.json(orders);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// 15. User Authentication
+// Register User
+app.post('/api/auth/user/register', async (req, res) => {
+    const { username, email, password, mobile, address, area } = req.body;
+    console.log('Registering user:', { username, email, mobile, address, area });
+    try {
+        let user = await User.findOne({ email });
+        if (user) return res.status(400).json({ msg: 'User already exists with this email' });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        user = new User({ username, email, password: hashedPassword, mobile, address, area });
+        await user.save();
+
+        const payload = { user: { id: user.id } };
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
+            if (err) throw err;
+            res.json({
+                token,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    mobile: user.mobile,
+                    address: user.address,
+                    area: user.area
+                }
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Login User
+app.post('/api/auth/user/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
+
+        const payload = { user: { id: user.id } };
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
+            if (err) throw err;
+            res.json({
+                token,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    mobile: user.mobile,
+                    address: user.address,
+                    area: user.area
+                }
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Update User Profile
+app.put('/api/auth/user/profile', userAuth, async (req, res) => {
+    const { username, address, password } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+
+        if (username) user.username = username;
+        if (address) user.address = address;
+        if (area) user.area = area;
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
+        }
+
+        await user.save();
+
+        res.json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            mobile: user.mobile,
+            address: user.address,
+            area: user.area
+        });
+    } catch (err) {
+        console.error(err);
         res.status(500).send('Server Error');
     }
 });
@@ -177,7 +325,7 @@ app.post('/api/auth/login', async (req, res) => {
         const payload = { admin: { id: admin.id } };
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 36000 }, (err, token) => {
             if (err) throw err;
-            res.json({ token });
+            res.json({ token, user: { username: admin.username } });
         });
     } catch (err) {
         res.status(500).send('Server Error');
@@ -210,6 +358,17 @@ app.get('/api/orders', auth, async (req, res) => {
         const orders = await Order.find().sort({ date: -1 });
         res.json(orders);
     } catch (err) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// 5.1 Admin - Get Total User Count
+app.get('/api/admin/users/count', auth, async (req, res) => {
+    try {
+        const count = await User.countDocuments();
+        res.json({ count });
+    } catch (err) {
+        console.error(err);
         res.status(500).send('Server Error');
     }
 });
